@@ -111,3 +111,119 @@ aligned_sequences
 writeXStringSet(aligned_sequences,
                 "results/aligned_sequences.fasta",
                 format = "fasta")
+
+# Calculate pairwise distances between bacterial sequences
+distance_matrix <- DistanceMatrix(aligned_sequences)
+
+# Convert distances into percentage similarity
+similarity_matrix <- (1 - distance_matrix) * 100
+
+# Display the similarity matrix
+round(similarity_matrix, 2)
+
+
+# Give the sequences shorter names for the graph
+rownames(similarity_matrix) <- c(
+  "E. coli",
+  "P. aeruginosa",
+  "K. pneumoniae",
+  "B. subtilis",
+  "S. aureus",
+  "S. enterica"
+)
+
+colnames(similarity_matrix) <- c(
+  "E. coli",
+  "P. aeruginosa",
+  "K. pneumoniae",
+  "B. subtilis",
+  "S. aureus",
+  "S. enterica"
+)
+
+# Convert the matrix into a format for ggplot2
+similarity_data <- as.data.frame(as.table(similarity_matrix))
+
+# Create the heatmap
+ggplot(similarity_data, aes(x = Var2, y = Var1, fill = Freq)) +
+  geom_tile(color = "white") +
+  geom_text(aes(label = sprintf("%.1f%%", Freq)), size = 3) +
+  scale_fill_gradient(low = "white", high = "steelblue",
+                      limits = c(0, 100)) +
+  labs(
+    title = "16S rRNA Sequence Similarity Heatmap",
+    x = "Bacterial Species",
+    y = "Bacterial Species",
+    fill = "Similarity (%)"
+  ) +
+  coord_fixed() +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+# Save the heatmap
+ggsave("results/sequence_similarity_heatmap.png",
+       width = 10, height = 8, dpi = 300)
+
+# Save the pairwise distance matrix
+write.csv(
+  distance_matrix,
+  "results/sequence_distance_matrix.csv"
+)
+
+# Save the similarity matrix
+write.csv(
+  similarity_matrix,
+  "results/sequence_similarity_matrix.csv"
+)
+
+# Convert the distance matrix into a distance object
+distance_object <- as.dist(distance_matrix)
+
+# Perform hierarchical clustering
+cluster_result <- hclust(distance_object, method = "average")
+
+# Display the clustering dendrogram
+plot(
+  cluster_result,
+  main = "Hierarchical Clustering of Bacterial 16S rRNA Sequences",
+  xlab = "Bacterial Species",
+  ylab = "Genetic Distance",
+  sub = "",
+  cex = 0.8
+)
+
+# Save the dendrogram
+png("results/bacterial_clustering.png",
+    width = 1200, height = 900, res = 150)
+
+plot(
+  cluster_result,
+  main = "Hierarchical Clustering of Bacterial 16S rRNA Sequences",
+  xlab = "Bacterial Species",
+  ylab = "Genetic Distance",
+  sub = "",
+  cex = 0.8
+)
+
+dev.off()
+
+# Divide the dendrogram into three clusters
+cluster_groups <- cutree(cluster_result, k = 3)
+
+# Create a table showing each sequence and its cluster
+cluster_results <- data.frame(
+  Species = names(cluster_groups),
+  Cluster = as.integer(cluster_groups)
+)
+
+# Display the cluster results
+print(cluster_results)
+
+# Save the cluster results
+write.csv(
+  cluster_results,
+  "results/bacterial_cluster_groups.csv",
+  row.names = FALSE
+)
+
+print(cluster_results)
