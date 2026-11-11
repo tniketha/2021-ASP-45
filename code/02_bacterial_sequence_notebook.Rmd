@@ -1,0 +1,62 @@
+---
+title: "Comparing Six Bacterial 16S rRNA Reference Sequences"
+output:
+  html_document:
+    self_contained: true
+    toc: true
+---
+
+This notebook runs the project analysis and displays its main results. The root README contains the full report, including the dataset accessions, methods, discussion, and references.
+
+```{r setup, include=FALSE}
+knitr::opts_knit$set(root.dir = normalizePath("..", winslash = "/"))
+knitr::opts_chunk$set(message = FALSE, fig.align = "center", out.width = "90%")
+```
+
+## Run the analysis
+
+The existing R script reads the bundled FASTA, checks the six reference records, and writes the tables, alignment, and figures used below.
+
+```{r analysis}
+source("code/01_bacterial_sequence_analysis.R", local = TRUE)
+```
+
+## Nucleotide composition and GC content
+
+```{r nucleotide-table}
+nucleotides <- read.csv("results/nucleotide_analysis.csv")
+nucleotides$Ambiguous_Bases <- nucleotides$Length -
+  rowSums(nucleotides[c("A", "T", "G", "C")])
+nucleotides$GC_Content <- sprintf("%.2f", nucleotides$GC_Content)
+knitr::kable(
+  nucleotides[c("Species", "Length", "Ambiguous_Bases", "GC_Content")],
+  col.names = c("Species", "Length (nt)", "Ambiguous bases", "GC (%)"),
+  caption = "Sequence length, ambiguous base counts, and GC content by record."
+)
+```
+
+```{r composition, echo=FALSE, fig.cap="Nucleotide composition as a percentage of each record's length."}
+knitr::include_graphics(normalizePath("results/nucleotide_composition.png", winslash = "/"), rel_path = FALSE)
+```
+
+```{r gc, echo=FALSE, fig.cap="GC content calculated using total sequence length."}
+knitr::include_graphics(normalizePath("results/gc_content_comparison.png", winslash = "/"), rel_path = FALSE)
+```
+
+## Aligned similarity and clustering
+
+The heatmap shows similarity calculated from uncorrected overlap distances. The dendrogram summarizes the same distances using average linkage.
+
+```{r heatmap, echo=FALSE, fig.cap="Pairwise 16S rRNA similarity percentages."}
+knitr::include_graphics(normalizePath("results/sequence_similarity_heatmap.png", winslash = "/"), rel_path = FALSE)
+```
+
+```{r dendrogram, echo=FALSE, fig.cap="Average-linkage dendrogram with the three-group cut outlined."}
+knitr::include_graphics(normalizePath("results/bacterial_clustering.png", winslash = "/"), rel_path = FALSE)
+```
+
+```{r clusters}
+clusters <- read.csv("results/bacterial_cluster_groups.csv")
+knitr::kable(clusters[c("Species", "Cluster")],
+             caption = "Reference records and their assigned groups.")
+```
