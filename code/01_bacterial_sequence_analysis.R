@@ -176,3 +176,54 @@ write.csv(
   "results/sequence_similarity_matrix.csv"
 )
 
+# Convert the distance matrix into a distance object
+distance_object <- as.dist(distance_matrix)
+
+# Perform hierarchical clustering
+cluster_result <- hclust(distance_object, method = "average")
+
+# Display the clustering dendrogram
+plot(
+  cluster_result,
+  main = "Hierarchical Clustering of Bacterial 16S rRNA Sequences",
+  xlab = "Bacterial Species",
+  ylab = "Genetic Distance",
+  sub = "",
+  cex = 0.8
+)
+
+# Save the dendrogram
+png("results/bacterial_clustering.png",
+    width = 1200, height = 900, res = 150)
+
+plot(
+  cluster_result,
+  main = "Hierarchical Clustering of Bacterial 16S rRNA Sequences",
+  xlab = "Bacterial Species",
+  ylab = "Genetic Distance",
+  sub = "",
+  cex = 0.8
+)
+
+dev.off()
+
+# Divide the dendrogram into three clusters
+cluster_groups <- cutree(cluster_result, k = 3)
+
+# Create a table showing each sequence and its cluster
+cluster_results <- data.frame(
+  Species = names(cluster_groups),
+  Cluster = as.integer(cluster_groups)
+)
+
+# Display the cluster results
+print(cluster_results)
+
+# Save the cluster results
+write.csv(
+  cluster_results,
+  "results/bacterial_cluster_groups.csv",
+  row.names = FALSE
+)
+
+print(cluster_results)
