@@ -115,6 +115,24 @@ Open the RStudio project or change to the repository root in a terminal, then ru
 Rscript code/01_bacterial_sequence_analysis.R
 ```
 
+### Render the R Markdown notebook
+
+Open the [rendered HTML notebook](report/Bacterial_16S_rRNA_Analysis_Notebook.html) in a browser to view the results tables and four figures. The [R Markdown source](code/02_bacterial_sequence_notebook.Rmd) runs the same R script and builds its tables and figures from the regenerated outputs.
+
+To rebuild the HTML, use RStudio or make Pandoc available on your system. After installing the analysis packages above, run the following in the R console from the repository root.
+
+```r
+install.packages(c("rmarkdown", "knitr"))
+
+rmarkdown::render(
+  "code/02_bacterial_sequence_notebook.Rmd",
+  output_file = "Bacterial_16S_rRNA_Analysis_Notebook.html",
+  output_dir = normalizePath("report")
+)
+```
+
+The HTML was rendered with rmarkdown 2.32, knitr 1.52, and Pandoc 3.10. The figures are embedded in the HTML, so the file can be opened on its own.
+
 ## References
 
 - Janda, J. M., & Abbott, S. L. (2007). 16S rRNA gene sequencing for bacterial identification in the diagnostic laboratory. *Journal of Clinical Microbiology, 45*(9), 2761–2764. [Article](https://doi.org/10.1128/JCM.01228-07)
