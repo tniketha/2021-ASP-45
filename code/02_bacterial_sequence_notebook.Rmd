@@ -60,3 +60,41 @@ clusters <- read.csv("results/bacterial_cluster_groups.csv")
 knitr::kable(clusters[c("Species", "Cluster")],
              caption = "Reference records and their assigned groups.")
 ```
+
+## Sensitivity to shared alignment positions
+
+This check repeats the comparison using only alignment columns where all six
+records have a called A, T, G, or C. Each pair is compared over the same columns.
+The resulting mismatch proportions are clustered using the same average linkage
+and three-group cut.
+
+```{r shared-position-summary, echo=FALSE, results='asis'}
+comparison <- read.csv("results/shared_position_comparison.csv")
+same_group <- comparison$Same_Overlap_Group == comparison$Same_Shared_Group
+similarity_change <- abs(comparison$Shared_Similarity_Percent -
+                           comparison$Overlap_Similarity_Percent)
+cat(sprintf(
+  paste("The check retained **%d of %d alignment columns**.",
+        "Group membership agreed for **%d of %d pairs**.",
+        "The largest similarity change was **%.2f percentage points**."),
+  comparison$Shared_Columns[1], width(aligned_sequences)[1],
+  sum(same_group), nrow(comparison), max(similarity_change)
+))
+```
+
+```{r shared-position-table, echo=FALSE}
+knitr::kable(
+  data.frame(
+    Record_1 = comparison$Record_1,
+    Record_2 = comparison$Record_2,
+    Overlap = sprintf("%.2f", comparison$Overlap_Similarity_Percent),
+    Shared = sprintf("%.2f", comparison$Shared_Similarity_Percent),
+    Original_Group = ifelse(comparison$Same_Overlap_Group, "Yes", "No"),
+    Shared_Group = ifelse(comparison$Same_Shared_Group, "Yes", "No")
+  ),
+  col.names = c("Record 1", "Record 2", "Overlap similarity (%)",
+                "Shared-position similarity (%)", "Same group (overlap)",
+                "Same group (shared)"),
+  caption = "Pairwise similarity and group membership under both comparisons."
+)
+```
