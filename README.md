@@ -94,6 +94,14 @@ The [cluster membership table](results/bacterial_cluster_groups.csv) groups *E. 
 
 The check retained 1,434 of 1,569 alignment columns. At the three-group cut, all 15 pairs kept their original same-group or different-group status. The largest change in similarity was 0.45 percentage points, for *P. aeruginosa* and *K. pneumoniae*. The *K. pneumoniae* and *S. enterica* pair still had the highest similarity at 97.49%. [Shared-position comparison table](results/shared_position_comparison.csv)
 
+![Scatter plot comparing original and shared-position similarity for 15 sequence pairs](results/shared_position_similarity.png)
+
+*Figure 5. Each point represents one sequence pair. The dashed diagonal marks equal similarity under both methods. Nearby points can overlap at this scale.*
+
+![Side-by-side box plots of pairwise similarity under both methods](results/shared_position_boxplot.png)
+
+*Figure 6. Each box spans the middle 50% of similarity scores and its center line marks the median. Dots show the scores for the same 15 sequence pairs under both methods. Figure 5 shows how individual pairs compare across methods.*
+
 ## Discussion
 
 The three members of Enterobacteriaceae grouped together as expected, and their similarity values were higher than those of any other distinct pair in this dataset. The GC and alignment results also show why the two summaries should be read together. *B. subtilis* and *S. aureus* had the largest GC difference among the six records but grouped together in the dendrogram. *P. aeruginosa* and *S. enterica* had GC values within half a percentage point of each other but a pairwise similarity of 85.65%. GC content describes composition, while the aligned comparison uses the arrangement of bases within the marker.
@@ -115,7 +123,7 @@ install.packages(c("BiocManager", "ggplot2"))
 BiocManager::install(c("Biostrings", "DECIPHER"))
 ```
 
-Open the RStudio project or change to the repository root in a terminal, then run the command below. The script uses the bundled FASTA, creates `results/` if needed, and regenerates the ten result files. In the RStudio console, the same script can be run with `source("code/01_bacterial_sequence_analysis.R")` from the repository root.
+Open the RStudio project or change to the repository root in a terminal, then run the command below. The script uses the bundled FASTA, creates `results/` if needed, and regenerates the twelve result files. In the RStudio console, the same script can be run with `source("code/01_bacterial_sequence_analysis.R")` from the repository root.
 
 ```sh
 Rscript code/01_bacterial_sequence_analysis.R
@@ -123,7 +131,7 @@ Rscript code/01_bacterial_sequence_analysis.R
 
 ### Render the R Markdown notebook
 
-Open the [rendered HTML notebook](report/Bacterial_16S_rRNA_Analysis_Notebook.html) in a browser to view the results tables and four figures. The [R Markdown source](code/02_bacterial_sequence_notebook.Rmd) runs the same R script and builds its tables and figures from the regenerated outputs.
+Open the [rendered HTML notebook](report/Bacterial_16S_rRNA_Analysis_Notebook.html) in a browser to view the results tables and six figures. The [R Markdown source](code/02_bacterial_sequence_notebook.Rmd) runs the same R script and builds its tables and figures from the regenerated outputs.
 
 To rebuild the HTML, use RStudio or make Pandoc available on your system. After installing the analysis packages above, run the following in the R console from the repository root.
 
