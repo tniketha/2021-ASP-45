@@ -1,229 +1,145 @@
-# Bacterial DNA Sequence Analysis
-print("My Bacterial DNA Analysis Project")
-
-# Load the Biostrings package
+# Run from the repository root with Rscript code/01_bacterial_sequence_analysis.R.
 library(Biostrings)
-
-# Read bacterial DNA sequences from the FASTA file
-sequences <- readDNAStringSet("data/bacterial_16S_sequences.fasta")
-
-# Display the sequences
-sequences
-
-# Check the length of each DNA sequence
-sequence_lengths <- width(sequences)
-
-# Display the lengths
-sequence_lengths
-
-# Count the four DNA bases
-base_counts <- letterFrequency(sequences, letters = c("A", "T", "G", "C"))
-
-# Display the base counts
-base_counts
-
-# Calculate GC content percentage
-gc_content <- (base_counts[, "G"] + base_counts[, "C"]) / sequence_lengths * 100
-
-# Display GC content
-gc_content
-
-# Create a results table
-results <- data.frame(
-  Species = c("Escherichia coli",
-              "Pseudomonas aeruginosa",
-              "Klebsiella pneumoniae",
-              "Bacillus subtilis",
-              "Staphylococcus aureus",
-              "Salmonella enterica"),
-  Length = sequence_lengths,
-  A = base_counts[, "A"],
-  T = base_counts[, "T"],
-  G = base_counts[, "G"],
-  C = base_counts[, "C"],
-  GC_Content = gc_content
-)
-
-# Display the results table
-results
-
-# Save the results table as a CSV file
-write.csv(results, "results/nucleotide_analysis.csv", row.names = FALSE)
-
-# Load ggplot2 package
+library(DECIPHER)
 library(ggplot2)
 
-# Create a GC content comparison graph
-ggplot(results, aes(x = Species, y = GC_Content)) +
-  geom_bar(stat = "identity", fill = "skyblue") +
-  labs(
-    title = "GC Content of Six Bacterial Species",
-    x = "Bacterial Species",
-    y = "GC Content (%)"
-  ) +
-  theme_minimal()
+input_file <- "data/bacterial_16S_sequences.fasta"
+output_dir <- "results"
 
-# Save the GC content graph
-ggsave("results/gc_content_comparison.png",
-       width = 10,
-       height = 6,
-       dpi = 300)
-
-# Convert nucleotide counts into a data frame
-nucleotide_data <- data.frame(
-  Species = rep(results$Species, 4),
-  Base = rep(c("A", "T", "G", "C"), each = 6),
-  Count = c(base_counts[, "A"],
-            base_counts[, "T"],
-            base_counts[, "G"],
-            base_counts[, "C"])
+# Match labels by versioned accession and use a consistent order for the plots.
+metadata <- data.frame(
+  Accession = c("NR_024570.1", "NR_117678.1", "NR_117686.1",
+                "NR_102783.2", "NR_037007.2", "NR_074910.1"),
+  Species = c("Escherichia coli", "Pseudomonas aeruginosa", "Klebsiella pneumoniae",
+              "Bacillus subtilis", "Staphylococcus aureus", "Salmonella enterica"),
+  Label = c("E. coli", "P. aeruginosa", "K. pneumoniae",
+            "B. subtilis", "S. aureus", "S. enterica")
 )
 
-# Display nucleotide data
-nucleotide_data
+# Read as text first so invalid symbols cannot be silently discarded on import.
+records <- readBStringSet(input_file, format = "fasta")
+headers <- names(records)
+accessions <- sub("[[:space:]].*$", "", headers)
+if (anyDuplicated(accessions) || !setequal(accessions, metadata$Accession)) {
+  stop("The FASTA must contain exactly one record for each expected accession.")
+}
+records <- records[match(metadata$Accession, accessions)]
+dna <- toupper(as.character(records))
+if (any(!grepl("^[ACGTRYSWKMBDHVN]+$", dna))) {
+  stop("Each unaligned FASTA record must contain only IUPAC DNA bases.")
+}
+sequences <- DNAStringSet(dna)
+names(sequences) <- names(records)
+coverage <- ifelse(grepl("partial sequence$", names(sequences)), "Partial", "Complete")
 
-# Create nucleotide composition graph
-ggplot(nucleotide_data, aes(x = Species, y = Count, fill = Base)) +
-  geom_bar(stat = "identity", position = "dodge") +
-  labs(
-    title = "Nucleotide Composition of Six Bacterial Species",
-    x = "Bacterial Species",
-    y = "Number of Nucleotides"
-  ) +
-  theme_minimal()
+bases <- c("A", "T", "G", "C")
+base_counts <- letterFrequency(sequences, letters = bases)
+sequence_lengths <- width(sequences)
+called_bases <- rowSums(base_counts)
+ambiguous_bases <- sequence_lengths - called_bases
+if (any(called_bases == 0L)) {
+  stop("Each sequence must contain at least one unambiguous base.")
+}
 
-# Save nucleotide composition graph
-ggsave("results/nucleotide_composition.png",
-       width = 12,
-       height = 7,
-       dpi = 300)
+# Keep the original total-length GC denominator and report ambiguous calls.
+results <- data.frame(
+  Accession = metadata$Accession,
+  Species = metadata$Species,
+  Coverage = coverage,
+  Length = sequence_lengths,
+  base_counts,
+  Ambiguous_Bases = ambiguous_bases,
+  GC_Content = 100 * (base_counts[, "G"] + base_counts[, "C"]) / sequence_lengths
+)
 
-# Load DECIPHER package
-library(DECIPHER)
+dir.create(output_dir, showWarnings = FALSE)
+write.csv(results, file.path(output_dir, "nucleotide_analysis.csv"), row.names = FALSE)
 
-# Align the six bacterial DNA sequences
-aligned_sequences <- AlignSeqs(sequences)
+# Use proportions for the composition plot to compare records of unequal length.
+plot_labels <- factor(metadata$Label, levels = metadata$Label)
+composition <- data.frame(
+  Species = rep(plot_labels, times = length(bases)),
+  Base = factor(rep(bases, each = nrow(metadata)), levels = bases),
+  Percent = as.vector(100 * base_counts / sequence_lengths)
+)
 
-# Display aligned sequences
-aligned_sequences
+composition_plot <- ggplot(composition, aes(Species, Percent, fill = Base)) +
+  geom_col(position = "dodge") +
+  scale_fill_brewer(palette = "Dark2") +
+  labs(title = "Nucleotide composition of bacterial 16S rRNA records",
+       x = NULL, y = "Percentage of sequence positions (%)") +
+  theme_minimal(base_size = 12)
 
-# Save aligned sequences in FASTA format
-writeXStringSet(aligned_sequences,
-                "results/aligned_sequences.fasta",
-                format = "fasta")
+gc_plot <- ggplot(results, aes(plot_labels, GC_Content)) +
+  geom_col(fill = "#297D85", width = 0.65) +
+  geom_text(aes(label = sprintf("%.2f", GC_Content)), vjust = -0.5, size = 3.5) +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.12))) +
+  labs(title = "GC content of bacterial 16S rRNA records",
+       x = NULL, y = "GC content (%)") +
+  theme_minimal(base_size = 12)
 
-# Calculate pairwise distances between bacterial sequences
-distance_matrix <- DistanceMatrix(aligned_sequences)
+ggsave(file.path(output_dir, "nucleotide_composition.png"), composition_plot,
+       width = 10, height = 5, dpi = 300)
+ggsave(file.path(output_dir, "gc_content_comparison.png"), gc_plot,
+       width = 10, height = 5, dpi = 300)
 
-# Convert distances into percentage similarity
+# Align the records and compare overlapping positions without penalizing gaps.
+aligned_sequences <- AlignSeqs(sequences, processors = 1, verbose = FALSE)
+writeXStringSet(aligned_sequences, file.path(output_dir, "aligned_sequences.fasta"))
+
+distance_matrix <- DistanceMatrix(
+  aligned_sequences, method = "overlap", type = "matrix",
+  includeTerminalGaps = FALSE, penalizeGapLetterMatches = FALSE,
+  minCoverage = 0, correction = NA, processors = 1, verbose = FALSE
+)
+if (any(!is.finite(distance_matrix))) {
+  stop("Some pairs have no comparable alignment positions.")
+}
+
+aligned_accessions <- sub("[[:space:]].*$", "", names(aligned_sequences))
+labels <- metadata$Label[match(aligned_accessions, metadata$Accession)]
+dimnames(distance_matrix) <- list(labels, labels)
 similarity_matrix <- (1 - distance_matrix) * 100
 
-# Display the similarity matrix
-round(similarity_matrix, 2)
+write.csv(distance_matrix, file.path(output_dir, "sequence_distance_matrix.csv"))
+write.csv(similarity_matrix, file.path(output_dir, "sequence_similarity_matrix.csv"))
 
-
-# Give the sequences shorter names for the graph
-rownames(similarity_matrix) <- c(
-  "E. coli",
-  "P. aeruginosa",
-  "K. pneumoniae",
-  "B. subtilis",
-  "S. aureus",
-  "S. enterica"
-)
-
-colnames(similarity_matrix) <- c(
-  "E. coli",
-  "P. aeruginosa",
-  "K. pneumoniae",
-  "B. subtilis",
-  "S. aureus",
-  "S. enterica"
-)
-
-# Convert the matrix into a format for ggplot2
-similarity_data <- as.data.frame(as.table(similarity_matrix))
-
-# Create the heatmap
-ggplot(similarity_data, aes(x = Var2, y = Var1, fill = Freq)) +
-  geom_tile(color = "white") +
-  geom_text(aes(label = sprintf("%.1f%%", Freq)), size = 3) +
-  scale_fill_gradient(low = "white", high = "steelblue",
-                      limits = c(0, 100)) +
-  labs(
-    title = "16S rRNA Sequence Similarity Heatmap",
-    x = "Bacterial Species",
-    y = "Bacterial Species",
-    fill = "Similarity (%)"
-  ) +
+similarity_data <- as.data.frame(as.table(similarity_matrix),
+                                 responseName = "Similarity")
+similarity_plot <- ggplot(similarity_data, aes(Var2, Var1, fill = Similarity)) +
+  geom_tile(color = "white", linewidth = 0.6) +
+  geom_text(aes(label = sprintf("%.1f%%", Similarity)), size = 3.5) +
+  scale_fill_gradient(low = "#F2F6F9", high = "#71A9CC",
+                      name = "Similarity (%)") +
+  scale_y_discrete(limits = rev(labels)) +
+  labs(title = "Pairwise 16S rRNA sequence similarity", x = NULL, y = NULL) +
   coord_fixed() +
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  theme_minimal(base_size = 12) +
+  theme(panel.grid = element_blank(),
+        axis.text.x = element_text(angle = 35, hjust = 1))
 
-# Save the heatmap
-ggsave("results/sequence_similarity_heatmap.png",
-       width = 10, height = 8, dpi = 300)
+ggsave(file.path(output_dir, "sequence_similarity_heatmap.png"), similarity_plot,
+       width = 8, height = 6, dpi = 300)
 
-# Save the pairwise distance matrix
-write.csv(
-  distance_matrix,
-  "results/sequence_distance_matrix.csv"
-)
-
-# Save the similarity matrix
-write.csv(
-  similarity_matrix,
-  "results/sequence_similarity_matrix.csv"
-)
-
-# Convert the distance matrix into a distance object
-distance_object <- as.dist(distance_matrix)
-
-# Perform hierarchical clustering
-cluster_result <- hclust(distance_object, method = "average")
-
-# Display the clustering dendrogram
-plot(
-  cluster_result,
-  main = "Hierarchical Clustering of Bacterial 16S rRNA Sequences",
-  xlab = "Bacterial Species",
-  ylab = "Genetic Distance",
-  sub = "",
-  cex = 0.8
-)
-
-# Save the dendrogram
-png("results/bacterial_clustering.png",
-    width = 1200, height = 900, res = 150)
-
-plot(
-  cluster_result,
-  main = "Hierarchical Clustering of Bacterial 16S rRNA Sequences",
-  xlab = "Bacterial Species",
-  ylab = "Genetic Distance",
-  sub = "",
-  cex = 0.8
-)
-
-dev.off()
-
-# Divide the dendrogram into three clusters
-cluster_groups <- cutree(cluster_result, k = 3)
-
-# Create a table showing each sequence and its cluster
+# Use a three-group cut to summarize this exploratory average-linkage tree.
+cluster_result <- hclust(as.dist(distance_matrix), method = "average")
+group_count <- 3L
+cluster_groups <- cutree(cluster_result, k = group_count)
 cluster_results <- data.frame(
-  Species = names(cluster_groups),
-  Cluster = as.integer(cluster_groups)
+  Accession = metadata$Accession,
+  Species = metadata$Species,
+  Cluster = unname(cluster_groups[metadata$Label])
 )
+write.csv(cluster_results, file.path(output_dir, "bacterial_cluster_groups.csv"),
+          row.names = FALSE)
 
-# Display the cluster results
-print(cluster_results)
-
-# Save the cluster results
-write.csv(
-  cluster_results,
-  "results/bacterial_cluster_groups.csv",
-  row.names = FALSE
-)
-
-print(cluster_results)
+png(file.path(output_dir, "bacterial_clustering.png"),
+    width = 2400, height = 1500, res = 300)
+par(mar = c(5, 5, 4, 2))
+plot(cluster_result, hang = -1,
+     main = "Average-linkage clustering of 16S rRNA records",
+     xlab = "", sub = "Boxes indicate the three-group cut",
+     ylab = "Pairwise dissimilarity at merge")
+par(xpd = TRUE)
+rect.hclust(cluster_result, k = group_count, border = "#297D85")
+invisible(dev.off())

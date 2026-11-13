@@ -1,7 +1,7 @@
-"Species","Length","A","T","G","C","GC_Content"
-"Escherichia coli",1450,366,289,463,329,54.6206896551724
-"Pseudomonas aeruginosa",1527,384,314,482,347,54.2894564505566
-"Klebsiella pneumoniae",1530,383,309,485,353,54.7712418300654
-"Bacillus subtilis",1550,382,313,491,364,55.1612903225806
-"Staphylococcus aureus",1552,417,342,452,341,51.0953608247423
-"Salmonella enterica",1544,388,312,488,356,54.6632124352332
+"Accession","Species","Coverage","Length","A","T","G","C","Ambiguous_Bases","GC_Content"
+"NR_024570.1","Escherichia coli","Partial",1450,366,289,463,329,3,54.6206896551724
+"NR_117678.1","Pseudomonas aeruginosa","Partial",1527,384,314,482,347,0,54.2894564505566
+"NR_117686.1","Klebsiella pneumoniae","Partial",1530,383,309,485,353,0,54.7712418300654
+"NR_102783.2","Bacillus subtilis","Complete",1550,382,313,491,364,0,55.1612903225806
+"NR_037007.2","Staphylococcus aureus","Complete",1552,417,342,452,341,0,51.0953608247423
+"NR_074910.1","Salmonella enterica","Partial",1544,388,312,488,356,0,54.6632124352332
