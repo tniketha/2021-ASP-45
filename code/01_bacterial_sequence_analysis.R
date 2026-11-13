@@ -177,3 +177,42 @@ comparison <- data.frame(
 )
 write.csv(comparison, file.path(output_dir, "shared_position_comparison.csv"),
           row.names = FALSE)
+
+# Equal axes and a diagonal reference show agreement between the two estimates.
+similarity_limits <- range(comparison$Overlap_Similarity_Percent,
+                           comparison$Shared_Similarity_Percent) + c(-1, 1)
+comparison_plot <- ggplot(
+  comparison, aes(Overlap_Similarity_Percent, Shared_Similarity_Percent)
+) +
+  geom_abline(slope = 1, intercept = 0, color = "grey50", linetype = "dashed") +
+  geom_point(color = "#297D85", size = 2.7, alpha = 0.8) +
+  coord_fixed(xlim = similarity_limits, ylim = similarity_limits) +
+  labs(title = "Pairwise similarity across alignment methods",
+       x = "Original overlap similarity (%)",
+       y = "Shared-position similarity (%)") +
+  theme_minimal(base_size = 12)
+
+ggsave(file.path(output_dir, "shared_position_similarity.png"), comparison_plot,
+       width = 7, height = 6, dpi = 300)
+
+# Show the median, quartiles, and observed scores for each method.
+similarity_distribution <- data.frame(
+  Method = factor(rep(c("Original overlap", "Shared positions"),
+                      each = nrow(comparison)),
+                  levels = c("Original overlap", "Shared positions")),
+  Similarity = c(comparison$Overlap_Similarity_Percent,
+                 comparison$Shared_Similarity_Percent)
+)
+box_plot <- ggplot(similarity_distribution, aes(Method, Similarity, fill = Method)) +
+  geom_boxplot(width = 0.55, alpha = 0.65, outlier.shape = NA, show.legend = FALSE) +
+  geom_point(position = position_jitter(width = 0.09, height = 0, seed = 16),
+             color = "#244247", size = 1.8, alpha = 0.8, show.legend = FALSE) +
+
+  scale_fill_manual(values = c("#66A9B2", "#B1A1CF")) +
+  labs(title = "Distribution of pairwise sequence similarity",
+       x = NULL, y = "Pairwise similarity (%)") +
+  theme_minimal(base_size = 12) +
+  theme(panel.grid.major.x = element_blank())
+
+ggsave(file.path(output_dir, "shared_position_boxplot.png"), box_plot,
+       width = 7, height = 5, dpi = 300)
