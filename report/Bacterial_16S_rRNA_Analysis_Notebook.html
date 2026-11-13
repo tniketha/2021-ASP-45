@@ -361,6 +361,8 @@ analysis</a></li>
 and GC content</a></li>
 <li><a href="#aligned-similarity-and-clustering" id="toc-aligned-similarity-and-clustering">Aligned similarity and
 clustering</a></li>
+<li><a href="#sensitivity-to-shared-alignment-positions" id="toc-sensitivity-to-shared-alignment-positions">Sensitivity to shared
+alignment positions</a></li>
 </ul>
 </div>
 
@@ -500,6 +502,160 @@ knitr::kable(clusters[c(&quot;Species&quot;, &quot;Cluster&quot;)],
 <tr class="even">
 <td align="left">Salmonella enterica</td>
 <td align="right">1</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="sensitivity-to-shared-alignment-positions" class="section level2">
+<h2>Sensitivity to shared alignment positions</h2>
+<p>This check repeats the comparison using only alignment columns where
+all six records have a called A, T, G, or C. Each pair is compared over
+the same columns. The resulting mismatch proportions are clustered using
+the same average linkage and three-group cut.</p>
+<p>The check retained <strong>1434 of 1569 alignment columns</strong>.
+Group membership agreed for <strong>15 of 15 pairs</strong>. The largest
+similarity change was <strong>0.45 percentage points</strong>.</p>
+<table>
+<caption>Pairwise similarity and group membership under both
+comparisons.</caption>
+<colgroup>
+<col width="11%" />
+<col width="11%" />
+<col width="18%" />
+<col width="25%" />
+<col width="17%" />
+<col width="16%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left">Record 1</th>
+<th align="left">Record 2</th>
+<th align="left">Overlap similarity (%)</th>
+<th align="left">Shared-position similarity (%)</th>
+<th align="left">Same group (overlap)</th>
+<th align="left">Same group (shared)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">E. coli</td>
+<td align="left">P. aeruginosa</td>
+<td align="left">84.90</td>
+<td align="left">84.94</td>
+<td align="left">No</td>
+<td align="left">No</td>
+</tr>
+<tr class="even">
+<td align="left">E. coli</td>
+<td align="left">K. pneumoniae</td>
+<td align="left">95.72</td>
+<td align="left">95.75</td>
+<td align="left">Yes</td>
+<td align="left">Yes</td>
+</tr>
+<tr class="odd">
+<td align="left">E. coli</td>
+<td align="left">B. subtilis</td>
+<td align="left">76.68</td>
+<td align="left">76.57</td>
+<td align="left">No</td>
+<td align="left">No</td>
+</tr>
+<tr class="even">
+<td align="left">E. coli</td>
+<td align="left">S. aureus</td>
+<td align="left">77.04</td>
+<td align="left">76.92</td>
+<td align="left">No</td>
+<td align="left">No</td>
+</tr>
+<tr class="odd">
+<td align="left">E. coli</td>
+<td align="left">S. enterica</td>
+<td align="left">96.83</td>
+<td align="left">96.79</td>
+<td align="left">Yes</td>
+<td align="left">Yes</td>
+</tr>
+<tr class="even">
+<td align="left">P. aeruginosa</td>
+<td align="left">K. pneumoniae</td>
+<td align="left">86.36</td>
+<td align="left">85.91</td>
+<td align="left">No</td>
+<td align="left">No</td>
+</tr>
+<tr class="odd">
+<td align="left">P. aeruginosa</td>
+<td align="left">B. subtilis</td>
+<td align="left">78.84</td>
+<td align="left">78.73</td>
+<td align="left">No</td>
+<td align="left">No</td>
+</tr>
+<tr class="even">
+<td align="left">P. aeruginosa</td>
+<td align="left">S. aureus</td>
+<td align="left">78.33</td>
+<td align="left">78.24</td>
+<td align="left">No</td>
+<td align="left">No</td>
+</tr>
+<tr class="odd">
+<td align="left">P. aeruginosa</td>
+<td align="left">S. enterica</td>
+<td align="left">85.65</td>
+<td align="left">85.36</td>
+<td align="left">No</td>
+<td align="left">No</td>
+</tr>
+<tr class="even">
+<td align="left">K. pneumoniae</td>
+<td align="left">B. subtilis</td>
+<td align="left">77.33</td>
+<td align="left">77.13</td>
+<td align="left">No</td>
+<td align="left">No</td>
+</tr>
+<tr class="odd">
+<td align="left">K. pneumoniae</td>
+<td align="left">S. aureus</td>
+<td align="left">77.80</td>
+<td align="left">77.68</td>
+<td align="left">No</td>
+<td align="left">No</td>
+</tr>
+<tr class="even">
+<td align="left">K. pneumoniae</td>
+<td align="left">S. enterica</td>
+<td align="left">97.45</td>
+<td align="left">97.49</td>
+<td align="left">Yes</td>
+<td align="left">Yes</td>
+</tr>
+<tr class="odd">
+<td align="left">B. subtilis</td>
+<td align="left">S. aureus</td>
+<td align="left">92.25</td>
+<td align="left">91.98</td>
+<td align="left">Yes</td>
+<td align="left">Yes</td>
+</tr>
+<tr class="even">
+<td align="left">B. subtilis</td>
+<td align="left">S. enterica</td>
+<td align="left">77.60</td>
+<td align="left">77.55</td>
+<td align="left">No</td>
+<td align="left">No</td>
+</tr>
+<tr class="odd">
+<td align="left">S. aureus</td>
+<td align="left">S. enterica</td>
+<td align="left">77.81</td>
+<td align="left">77.75</td>
+<td align="left">No</td>
+<td align="left">No</td>
 </tr>
 </tbody>
 </table>
