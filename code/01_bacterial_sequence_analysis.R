@@ -143,3 +143,37 @@ plot(cluster_result, hang = -1,
 par(xpd = TRUE)
 rect.hclust(cluster_result, k = group_count, border = "#297D85")
 invisible(dev.off())
+
+# Recalculate distances using the same unambiguous alignment columns for every pair.
+alignment <- as.matrix(aligned_sequences)
+shared_columns <- colSums(matrix(alignment %in% bases, nrow = nrow(alignment))) ==
+  nrow(alignment)
+if (!any(shared_columns)) {
+  stop("The alignment contains no columns with a called base in every record.")
+}
+shared_alignment <- alignment[, shared_columns, drop = FALSE]
+pairs <- combn(seq_along(labels), 2L)
+first <- pairs[1L, ]
+second <- pairs[2L, ]
+shared_distances <- rowMeans(shared_alignment[first, , drop = FALSE] !=
+                               shared_alignment[second, , drop = FALSE])
+shared_matrix <- matrix(0, length(labels), length(labels),
+                        dimnames = list(labels, labels))
+shared_matrix[cbind(first, second)] <- shared_distances
+shared_matrix[cbind(second, first)] <- shared_distances
+shared_clusters <- hclust(as.dist(shared_matrix), method = "average")
+shared_groups <- cutree(shared_clusters, k = group_count)
+
+comparison <- data.frame(
+  Record_1 = labels[first],
+  Record_2 = labels[second],
+  Shared_Columns = ncol(shared_alignment),
+  Overlap_Similarity_Percent = similarity_matrix[cbind(first, second)],
+  Shared_Similarity_Percent = 100 * (1 - shared_distances),
+  Same_Overlap_Group = unname(cluster_groups[labels[first]] ==
+                               cluster_groups[labels[second]]),
+  Same_Shared_Group = unname(shared_groups[labels[first]] ==
+                              shared_groups[labels[second]])
+)
+write.csv(comparison, file.path(output_dir, "shared_position_comparison.csv"),
+          row.names = FALSE)
