@@ -45,6 +45,8 @@ DECIPHER's `AlignSeqs()` aligns the six DNA records in one multiple sequence ali
 
 Each similarity value is 100 × (1 − distance). The heatmap presents that transformation as a percentage, and clustering uses the original dissimilarities. Average linkage merges groups using the mean of all distances between a record in one group and a record in the other. The dendrogram shows the order and height of the merges. A three-group cut provides a concise view of the stronger groupings before the final merges. It is a descriptive choice for this dataset, with no claim that three is an optimal or general classification.
 
+As a sensitivity check, the script repeats the comparison using only alignment columns where all six records have a called A, T, G, or C. For each pair, it divides the number of mismatches by the number of retained columns, then applies the same average linkage and three-group cut. Comparing whether each pair stays in the same group avoids depending on the numeric labels assigned to clusters.
+
 ## Results
 
 ### Quality control and composition
@@ -88,6 +90,10 @@ The multiple sequence alignment contained 1,569 columns. Across the 15 distinct 
 
 The [cluster membership table](results/bacterial_cluster_groups.csv) groups *E. coli*, *K. pneumoniae*, and *S. enterica* together. *B. subtilis* and *S. aureus* form a second group, with 92.25% pairwise similarity. *P. aeruginosa* forms a one-record group at this cut. Its highest similarity to another record was 86.36%, with *K. pneumoniae*. The group numbers in the table are identifiers assigned by the cut.
 
+### Sensitivity to shared alignment positions
+
+The check retained 1,434 of 1,569 alignment columns. At the three-group cut, all 15 pairs kept their original same-group or different-group status. The largest change in similarity was 0.45 percentage points, for *P. aeruginosa* and *K. pneumoniae*. The *K. pneumoniae* and *S. enterica* pair still had the highest similarity at 97.49%. [Shared-position comparison table](results/shared_position_comparison.csv)
+
 ## Discussion
 
 The three members of Enterobacteriaceae grouped together as expected, and their similarity values were higher than those of any other distinct pair in this dataset. The GC and alignment results also show why the two summaries should be read together. *B. subtilis* and *S. aureus* had the largest GC difference among the six records but grouped together in the dendrogram. *P. aeruginosa* and *S. enterica* had GC values within half a percentage point of each other but a pairwise similarity of 85.65%. GC content describes composition, while the aligned comparison uses the arrangement of bases within the marker.
@@ -98,7 +104,7 @@ The main limitation is sampling. One reference per species leaves within-species
 
 ## Conclusion
 
-For these six reference records, aligned 16S rRNA similarity recovered the expected group of *E. coli*, *K. pneumoniae*, and *S. enterica*. Base composition provided a separate description of the records, with GC content varying from 51.10% to 55.16%. A follow-up could repeat the comparison across a common aligned region, exclude ambiguous columns, and include several reference records for each species. Comparing those results would show whether the observed groupings persist when coverage and sampling change.
+For these six reference records, aligned 16S rRNA similarity recovered the expected group of *E. coli*, *K. pneumoniae*, and *S. enterica*. The same three groups appeared when every pair was compared over the same unambiguous positions. Base composition provided a separate description of the records, with GC content varying from 51.10% to 55.16%. A follow-up could include several reference records per species to assess whether the groupings persist with broader sampling.
 
 ## Reproducibility
 
@@ -109,7 +115,7 @@ install.packages(c("BiocManager", "ggplot2"))
 BiocManager::install(c("Biostrings", "DECIPHER"))
 ```
 
-Open the RStudio project or change to the repository root in a terminal, then run the command below. The script uses the bundled FASTA, creates `results/` if needed, and regenerates the nine result files. In the RStudio console, the same script can be run with `source("code/01_bacterial_sequence_analysis.R")` from the repository root.
+Open the RStudio project or change to the repository root in a terminal, then run the command below. The script uses the bundled FASTA, creates `results/` if needed, and regenerates the ten result files. In the RStudio console, the same script can be run with `source("code/01_bacterial_sequence_analysis.R")` from the repository root.
 
 ```sh
 Rscript code/01_bacterial_sequence_analysis.R
