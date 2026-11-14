@@ -82,6 +82,14 @@ cat(sprintf(
 ))
 ```
 
+```{r shared-position-plot, echo=FALSE, fig.cap="Each point represents a sequence pair. The dashed diagonal marks equal similarity under both methods."}
+knitr::include_graphics(normalizePath("results/shared_position_similarity.png", winslash = "/"), rel_path = FALSE)
+```
+
+```{r shared-position-boxplot, echo=FALSE, fig.cap="Box plots of the same 15 pairwise similarities under both methods. The boxes show the middle 50%, the center lines mark the medians, and the dots show individual scores."}
+knitr::include_graphics(normalizePath("results/shared_position_boxplot.png", winslash = "/"), rel_path = FALSE)
+```
+
 ```{r shared-position-table, echo=FALSE}
 knitr::kable(
   data.frame(
